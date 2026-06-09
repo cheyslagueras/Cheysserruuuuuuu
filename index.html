@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Religions & Belief Systems - Matching Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+        :root {
+            --bg-dark: #1a1514;
+            --board-bg: #2d2422;
+            --card-bg: #f4ecd8; /* Parchment look */
+            --card-border: #8b7355;
+            --text-main: #3e2723;
+            --highlight: #d4af37; /* Realistic Gold */
+            --correct: #4caf50;
+            --wrong: #e53935;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Lora', serif;
+            color: var(--card-bg);
+        }
+
+        /* 16:9 Aspect Ratio Container */
+        #game-container {
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, var(--board-bg) 0%, #1a1514 100%);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
+            border: 4px solid var(--highlight);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.4);
+            border-bottom: 2px solid var(--card-border);
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            margin: 0;
+            font-size: 1.8vw;
+            color: var(--highlight);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2vw;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        button {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            background: var(--highlight);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        #game-board {
+            flex: 1;
+            display: flex;
+            padding: 20px 40px;
+            gap: 40px;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            color: var(--text-main);
+            padding: 15px;
+            text-align: center;
+            border: 3px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 1.4vw;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: inset 0 0 20px rgba(139, 115, 85, 0.2), 0 5px 15px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 1px dashed rgba(139, 115, 85, 0.5);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+
+        .card.selected {
+            background: var(--highlight);
+            color: white;
+            border-color: white;
+            box-shadow: 0 0 15px var(--highlight);
+        }
+
+        .card.matched {
+            background: var(--correct);
+            color: white;
+            border-color: #2e7d32;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .card.wrong {
+            animation: shake 0.4s;
+            background: var(--wrong);
+            color: white;
+            border-color: #b71c1c;
+        }
+
+        #screens {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 21, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .screen-content {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 40px;
+            border: 4px solid var(--highlight);
+            border-radius: 10px;
+            color: var(--text-main);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            max-width: 60%;
+        }
+
+        .screen-content h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5vw;
+            margin-top: 0;
+            color: var(--text-main);
+        }
+
+        .screen-content p {
+            font-size: 1.2vw;
+            line-height: 1.6;
+        }
+
+        .screen-content button {
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Responsive adjustments for tablets */
+        @media (max-width: 900px) {
+            #game-container { aspect-ratio: auto; height: 90vh; }
+            h1 { font-size: 24px; }
+            .stats { font-size: 16px; }
+            .card { font-size: 18px; padding: 12px; }
+            .screen-content h2 { font-size: 28px; }
+            .screen-content p { font-size: 16px; }
+            .screen-content button { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Audio Element (Using a free educational domain music loop) -->
+        <audio id="bg-music" loop>
+            <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_4966779836.mp3?filename=ambient-classical-guitar-144998.mp3" type="audio/mpeg">
+        </audio>
+
+        <header>
+            <h1>Religions & Belief Systems</h1>
+            <div class="stats">
+                <div>Level: <span id="level-display">1</span>/3</div>
+                <div>Score: <span id="score-display">0</span></div>
+            </div>
+            <div class="controls">
+                <button id="music-btn" onclick="toggleMusic()">🔊 Music Off</button>
+            </div>
+        </header>
+
+        <div id="game-board">
+            <div class="column" id="left-col"></div>
+            <div class="column" id="right-col"></div>
+        </div>
+
+        <!-- Overlays for Start/End -->
+        <div id="screens">
+            <div class="screen-content" id="start-screen">
+                <h2>Grade 8 Social Science</h2>
+                <p>Welcome to the World Religions Matching Game. Connect the concepts, symbols, and founders to their corresponding belief systems.</p>
+                <p><strong>Instructions:</strong> Tap an item on the left, then tap its match on the right. Earn points for correct answers!</p>
+                <button onclick="startGame()">Begin Journey</button>
+            </div>
+
+            <div class="screen-content hidden" id="level-screen">
+                <h2 id="level-title">Level Complete!</h2>
+                <p>Great job! You have demonstrated excellent knowledge.</p>
+                <button onclick="nextLevel()">Next Level</button>
+            </div>
+
+            <div class="screen-content hidden" id="end-screen">
+                <h2>Journey Complete!</h2>
+                <p>You have mastered the belief systems.</p>
+                <p>Final Score: <strong id="final-score">0</strong></p>
+                <button onclick="resetGame()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game Data structure (Easy to Difficult)
+        const gameLevels = [
+            {
+                level: 1, // Easy: Sacred Texts & Founders
+                pairs: [
+                    { id: 1, left: "Bible", right: "Christianity" },
+                    { id: 2, left: "Quran", right: "Islam" },
+                    { id: 3, left: "Torah", right: "Judaism" },
+                    { id: 4, left: "Siddhartha Gautama", right: "Buddhism" },
+                    { id: 5, left: "Vedas", right: "Hinduism" }
+                ]
+            },
+            {
+                level: 2, // Medium: Core Concepts
+                pairs: [
+                    { id: 1, left: "Five Pillars", right: "Islam" },
+                    { id: 2, left: "Karma & Reincarnation", right: "Hinduism" },
+                    { id: 3, left: "Eightfold Path", right: "Buddhism" },
+                    { id: 4, left: "Holy Trinity", right: "Christianity" },
+                    { id: 5, left: "Kami (Spirits in Nature)", right: "Shintoism" }
+                ]
+            },
+            {
+                level: 3, // Difficult: Sects & Advanced Terms
+                pairs: [
+                    { id: 1, left: "Theravada & Mahayana", right: "Buddhism" },
+                    { id: 2, left: "Sunni & Shia", right: "Islam" },
+                    { id: 3, left: "Moksha (Release from cycle)", right: "Hinduism" },
+                    { id: 4, left: "Yin and Yang", right: "Daoism" },
+                    { id: 5, left: "Kosher Dietary Laws", right: "Judaism" }
+                ]
+            }
+        ];
+
+        let currentLevelIndex = 0;
+        let score = 0;
+        let selectedLeft = null;
+        let selectedRight = null;
+        let matchesFound = 0;
+        let isMusicPlaying = false;
+
+        const leftCol = document.getElementById('left-col');
+        const rightCol = document.getElementById('right-col');
+        const scoreDisplay = document.getElementById('score-display');
+        const levelDisplay = document.getElementById('level-display');
+        const screens = document.getElementById('screens');
+        const startScreen = document.getElementById('start-screen');
+        const levelScreen = document.getElementById('level-screen');
+        const endScreen = document.getElementById('end-screen');
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicBtn.innerText = "🔊 Music Off";
+            } else {
+                bgMusic.play();
+                musicBtn.innerText = "🔇 Music On";
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // Shuffle array function (Fisher-Yates)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            screens.classList.add('hidden');
+            startScreen.classList.add('hidden');
+            if(!isMusicPlaying) toggleMusic(); // Auto start music on interaction if desired
+            loadLevel();
+        }
+
+        function loadLevel() {
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+            selectedLeft = null;
+            selectedRight = null;
+            matchesFound = 0;
+            
+            levelDisplay.innerText = currentLevelIndex + 1;
+            
+            const currentData = gameLevels[currentLevelIndex].pairs;
+            
+            // Create separate arrays for left and right, then shuffle them
+            let leftItems = currentData.map(item => ({ id: item.id, text: item.left }));
+            let rightItems = currentData.map(item => ({ id: item.id, text: item.right }));
+
+            leftItems = shuffle(leftItems);
+            rightItems = shuffle(rightItems);
+
+            // Render Left Column
+            leftItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card left-card';
+                div.innerText = item.text;
+                div.dataset.id = item.id;
+                div.onclick = () => handleSelect(div, 'left');
+                leftCol.appendChild(div);
+            });
+
+            // Render Right Column
+            rightItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card right-card';
+                div.innerText = item.text;
+                div.dataset.id = item.id;
+                div.onclick = () => handleSelect(div, 'right');
+                rightCol.appendChild(div);
+            });
+        }
+
+        function handleSelect(cardElement, side) {
+            // Ignore if already matched
+            if (cardElement.classList.contains('matched')) return;
+
+            // Handle Left selection
+            if (side === 'left') {
+                if (selectedLeft) selectedLeft.classList.remove('selected');
+                selectedLeft = cardElement;
+                selectedLeft.classList.add('selected');
+            } 
+            // Handle Right selection
+            else {
+                if (selectedRight) selectedRight.classList.remove('selected');
+                selectedRight = cardElement;
+                selectedRight.classList.add('selected');
+            }
+
+            // Check match if both are selected
+            if (selectedLeft && selectedRight) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const leftId = selectedLeft.dataset.id;
+            const rightId = selectedRight.dataset.id;
+
+            if (leftId === rightId) {
+                // Correct Match
+                score += 100;
+                scoreDisplay.innerText = score;
+                
+                selectedLeft.classList.remove('selected');
+                selectedRight.classList.remove('selected');
+                selectedLeft.classList.add('matched');
+                selectedRight.classList.add('matched');
+                
+                matchesFound++;
+                selectedLeft = null;
+                selectedRight = null;
+
+                if (matchesFound === gameLevels[currentLevelIndex].pairs.length) {
+                    setTimeout(showLevelComplete, 500);
+                }
+            } else {
+                // Wrong Match
+                score = Math.max(0, score - 20); // Penalty for wrong guess
+                scoreDisplay.innerText = score;
+
+                selectedLeft.classList.add('wrong');
+                selectedRight.classList.add('wrong');
+
+                const lTemp = selectedLeft;
+                const rTemp = selectedRight;
+
+                setTimeout(() => {
+                    lTemp.classList.remove('wrong', 'selected');
+                    rTemp.classList.remove('wrong', 'selected');
+                }, 400);
+
+                selectedLeft = null;
+                selectedRight = null;
+            }
+        }
+
+        function showLevelComplete() {
+            screens.classList.remove('hidden');
+            if (currentLevelIndex < gameLevels.length - 1) {
+                levelScreen.classList.remove('hidden');
+            } else {
+                endScreen.classList.remove('hidden');
+                document.getElementById('final-score').innerText = score;
+            }
+        }
+
+        function nextLevel() {
+            currentLevelIndex++;
+            screens.classList.add('hidden');
+            levelScreen.classList.add('hidden');
+            loadLevel();
+        }
+
+        function resetGame() {
+            currentLevelIndex = 0;
+            score = 0;
+            scoreDisplay.innerText = score;
+            screens.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            loadLevel();
+        }
+    </script>
+</body>
+</html>
